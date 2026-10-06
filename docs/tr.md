@@ -8,9 +8,9 @@
   Учебный проект по курсу «Распределенные системы». Изучение p2p-систем
 
 - **Команда:**
-  - Анциферов Андрей - Гл. разработчик
-  - m-xim - Разработчик №1
-  - Пискунов Александр - Разработчик №2
+  - Анциферов Андрей Сергеевич - Team Lead, DevOps & Frontend Developer
+  - m-xim - Backend Developer & DevOps
+  - Пискунов Александр Витальевич - Cryptography & Data Engineer, Backend Developer
 
 ---
 
