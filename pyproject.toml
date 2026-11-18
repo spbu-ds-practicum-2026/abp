@@ -6,7 +6,10 @@ requires-python = ">=3.14"
 dependencies = []
 
 [tool.uv.workspace]
-members = ["services/*"]
+members = [
+    "services/core",
+    "services/node"
+]
 
 [dependency-groups]
 dev = [
