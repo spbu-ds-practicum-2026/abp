@@ -1,20 +1,39 @@
-# <!-- TODO: Этот заголовок должен быть названием вашего проекта. -->
+# ABP
 
-##
-<!-- TODO: Краткое описание проекта. Подробное оставьте для ТР-->
+Workspace с gRPC-сервисами проекта PMWallet.
 
 ## Структура
-- `services/` — код сервисов (любой язык)
-- `docs/` — ТР (техрешение), архитектура, UML
-- `.github/` — шаблоны задач и PR
 
-## Как работать
-1. Создайте ветку от `main`.
-2. Пишите код в `services/<service>/`.
-3. Если меняете архитектуру — обновляйте `docs/tr.md`.
-4. Делайте PR в `main` — используйте шаблон PR.
+- `proto/` — исходные `.proto`-файлы;
+- `services/node/` — Python Node-сервис;
+- `services/client/` — Rust-клиент;
+- `services/core/` — Python Core-сервис;
+- `docs/` — техническая документация.
 
-## Требования к PR (минимум)
-- Понятное описание
-- Обновлённые docs при архитектурных изменениях
-- Запускается локально (опишите в `services/<service>/README.md`)
+## Предварительные требования
+
+- [`uv`](https://docs.astral.sh/uv/) — установка Python, окружения и зависимостей;
+- [`Buf CLI`](https://buf.build/docs/cli/) — lint и генерация `.proto`-файлов.
+
+## Установка
+
+```bash
+uv python install 3.14
+uv lock
+uv sync --all-packages
+```
+
+## Сервисы
+
+- [`Node`](services/node/README.md) — Python gRPC-сервис;
+- `Client` — Rust-клиент;
+- `Core` — Python Core-сервис.
+
+## Buf
+
+Из корня репозитория:
+
+```bash
+buf lint
+buf generate
+```

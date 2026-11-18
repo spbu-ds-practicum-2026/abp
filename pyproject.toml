@@ -1,5 +1,23 @@
+[project]
+name = "abp"
+version = "0.1.0"
+description = "Workspace for PMWallet services"
 requires-python = ">=3.14"
-dependencies = ["ty"]
+dependencies = []
 
 [tool.uv.workspace]
 members = ["services/*"]
+
+[dependency-groups]
+dev = [
+    "betterproto2-compiler>=0.10.1",
+    "ruff>=0.17.5",
+]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+extend-exclude = ["*.md"]  # code in docs is illustration, not formatted source
+exclude = [
+    "**/generated/**",
+]

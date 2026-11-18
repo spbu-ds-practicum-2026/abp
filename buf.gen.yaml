@@ -1,0 +1,19 @@
+
+version: v2
+
+plugins:
+  - local:
+      - uv
+      - run
+      - --package
+      - node
+      - protoc-gen-python_betterproto2
+    out: services/node/src/node/generated
+    opt:
+      - server_generation=async
+
+  - remote: buf.build/community/neoeinstein-prost:v0.5.0
+    out: services/client/src/client/generated
+
+  - remote: buf.build/community/neoeinstein-tonic:v0.5.0
+    out: services/client/src/client/generated

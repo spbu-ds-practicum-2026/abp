@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package pmwallet;
+package pmwallet.v1;
 
 service NodeService {
   rpc GetBalance(GetBalanceRequest)
@@ -41,11 +41,11 @@ message SubmitTransactionRequest {
 }
 
 message SubmitTransactionResponse {
-  bytes tx_id = 1;
+  string tx_id = 1;
 }
 
 message GetTransactionStatusRequest {
-  bytes tx_id = 1;
+  string tx_id = 1;
 }
 
 message GetTransactionStatusResponse {
