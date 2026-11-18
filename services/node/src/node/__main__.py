@@ -1,6 +1,7 @@
 import asyncio
 import sys
 
+import colorama
 import structlog
 import uvicorn
 from grpclib.server import Server
@@ -10,8 +11,7 @@ from node.grps_service import NodeService
 from node.http_service import app
 from node.logs import configure_logging
 
-BANNER = r"""
-                                                 ___    ___           __      
+BANNER = r"""                                                 ___    ___           __      
                                                 /\_ \  /\_ \         /\ \__   
      _____     ___ ___       __  __  __     __  \//\ \ \//\ \      __\ \ ,_\  
     /\ '__`\ /' __` __`\    /\ \/\ \/\ \  /'__`\  \ \ \  \ \ \   /'__`\ \ \/  
@@ -20,14 +20,15 @@ BANNER = r"""
       \ \ \/  \/_/\/_/\/_/    \/__//__/   \/__/\/_/\/____/\/____/\/____/ \/__/
        \ \_                                                                  
         \/_/                                                                  
+
 """
 
 
 def print_banner() -> None:
     if sys.stdout.isatty():
-        print(f"\033[96m{BANNER.rstrip()}\033[0m", flush=True)
+        print(colorama.Fore.WHITE + BANNER + colorama.Style.RESET_ALL, flush=True)
     else:
-        print(BANNER.rstrip(), flush=True)
+        print(BANNER, flush=True)
 
 
 async def run() -> None:
