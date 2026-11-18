@@ -13,7 +13,7 @@ uv run --package node python -m node
 - HTTP healthcheck через FastAPI/Uvicorn: `http://127.0.0.1:8000/health`;
 - gRPC NodeService: `http://127.0.0.1:1337`.
 
-Настройка через env: `HTTP_HOST`, `HTTP_PORT`, `GRPC_HOST`, `GRPC_PORT` и `LOG_LEVEL`.
+Настройка через env: `HTTP_HOST`, `HTTP_PORT`, `GRPC_HOST`, `GRPC_PORT`, `LOG__LEVEL`, `LOG__COLORS` и `LOG__TIMESTAMP_FORMAT`.
 
 ## Проверить
 

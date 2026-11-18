@@ -1,31 +1,16 @@
 import asyncio
+import sys
 
+import structlog
 import uvicorn
 from grpclib.server import Server
 
 from node.config import config
 from node.grps_service import NodeService
 from node.http_service import app
+from node.logs import configure_logging
 
-
-async def start_grpc_server() -> None:
-    server = Server([NodeService()])
-    await server.start(config.grpc_host, config.grpc_port)
-    await server.wait_closed()
-
-
-async def start_http_server() -> None:
-    uvicorn_config = uvicorn.Config(
-        app,
-        host=config.http_host,
-        port=config.http_port,
-        log_level=config.log_level,
-    )
-    await uvicorn.Server(uvicorn_config).serve()
-
-
-async def start_servers() -> None:
-    print(r"""
+BANNER = r"""
                                                  ___    ___           __      
                                                 /\_ \  /\_ \         /\ \__   
      _____     ___ ___       __  __  __     __  \//\ \ \//\ \      __\ \ ,_\  
@@ -33,12 +18,56 @@ async def start_servers() -> None:
     \ \ \L\ \/\ \/\ \/\ \   \ \ \_/ \_/ \/\ \L\.\_ \_\ \_ \_\ \_/\  __/\ \ \_ 
      \ \ ,__/\ \_\ \_\ \_\   \ \___x___/'\ \__/.\_\/\____\/\____\ \____\\ \__\
       \ \ \/  \/_/\/_/\/_/    \/__//__/   \/__/\/_/\/____/\/____/\/____/ \/__/
-       \ \_\                                                                  
+       \ \_                                                                  
         \/_/                                                                  
-    """)
+"""
 
-    await asyncio.gather(start_grpc_server(), start_http_server())
+
+def print_banner() -> None:
+    if sys.stdout.isatty():
+        print(f"\033[96m{BANNER.rstrip()}\033[0m", flush=True)
+    else:
+        print(BANNER.rstrip(), flush=True)
+
+
+async def run() -> None:
+    print_banner()
+    configure_logging(config.log)
+    log = structlog.get_logger("node")
+    log.info("node starting")
+
+    grpc_server = Server([NodeService()])
+    uvicorn_server = uvicorn.Server(
+        uvicorn.Config(
+            app,
+            host=config.http_host,
+            port=config.http_port,
+            log_level=config.log.level,
+            log_config=None,
+        )
+    )
+
+    try:
+        await grpc_server.start(config.grpc_host, config.grpc_port)
+    except BaseException:
+        log.exception("application.failed")
+        raise
+
+    log.info("gRPC listening", address=f"{config.grpc_host}:{config.grpc_port}")
+
+    try:
+        await asyncio.gather(uvicorn_server.serve(), grpc_server.wait_closed())
+    except asyncio.CancelledError:
+        raise
+    except BaseException:
+        log.exception("application.failed")
+        raise
+    finally:
+        log.info("node stopping")
+        uvicorn_server.should_exit = True
+        grpc_server.close()
+        await grpc_server.wait_closed()
 
 
 if __name__ == "__main__":
-    asyncio.run(start_servers())
+    asyncio.run(run())

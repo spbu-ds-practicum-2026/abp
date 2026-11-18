@@ -12,6 +12,7 @@ dependencies = [
     "fastapi>=0.165.0",
     "grpcio>=1.85.3",
     "grpclib>=0.4.9",
+    "structlog>=26.1.0",
     "uvicorn[standard,standart]>=0.54.0",
 ]
 
