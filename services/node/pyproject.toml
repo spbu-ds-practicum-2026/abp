@@ -8,8 +8,11 @@ authors = [
 ]
 dependencies = [
     "betterproto2>=0.10.0",
+    "dature[toml]>=1.6.4",
+    "fastapi>=0.165.0",
     "grpcio>=1.85.3",
     "grpclib>=0.4.9",
+    "uvicorn[standard,standart]>=0.54.0",
 ]
 
 [build-system]

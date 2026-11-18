@@ -8,6 +8,13 @@ uv run --package node python -m node
 
 Остановить сервер: `Ctrl+C`.
 
+Сервис одновременно поднимает:
+
+- HTTP healthcheck через FastAPI/Uvicorn: `http://127.0.0.1:8000/health`;
+- gRPC NodeService: `http://127.0.0.1:1337`.
+
+Настройка через env: `HTTP_HOST`, `HTTP_PORT`, `GRPC_HOST`, `GRPC_PORT` и `LOG_LEVEL`.
+
 ## Проверить
 
 ```bash

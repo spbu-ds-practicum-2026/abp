@@ -1,53 +1,44 @@
 import asyncio
 
+import uvicorn
 from grpclib.server import Server
 
-from node.generated.pmwallet.v1 import (
-    GetBalanceRequest,
-    GetBalanceResponse,
-    GetTransactionStatusRequest,
-    GetTransactionStatusResponse,
-    NodeServiceBase,
-    PrepareTransactionRequest,
-    PrepareTransactionResponse,
-    SubmitTransactionRequest,
-    SubmitTransactionResponse,
-    TransactionStatus,
-)
+from node.config import config
+from node.grps_service import NodeService
+from node.http_service import app
 
 
-class NodeService(NodeServiceBase):
-    async def get_balance(self, message: GetBalanceRequest) -> GetBalanceResponse:
-        return GetBalanceResponse(balance=1000)
-
-    async def prepare_transaction(
-        self, message: PrepareTransactionRequest
-    ) -> PrepareTransactionResponse:
-        """1 стадия create transaction"""
-
-        return PrepareTransactionResponse(
-            signing_hashes=[bytes([33])],
-            unsigned_transaction=bytes([33]),
-        )
-
-    async def submit_transaction(
-        self, message: SubmitTransactionRequest
-    ) -> SubmitTransactionResponse:
-        return SubmitTransactionResponse(tx_id="submitted")
-
-    async def get_transaction_status(
-        self, message: GetTransactionStatusRequest
-    ) -> GetTransactionStatusResponse:
-        return GetTransactionStatusResponse(status=TransactionStatus.CONFIRMED)
-
-
-async def start_server():
-    HOST = "127.0.0.1"
-    PORT = 1337
+async def start_grpc_server() -> None:
     server = Server([NodeService()])
-    await server.start(HOST, PORT)
+    await server.start(config.grpc_host, config.grpc_port)
     await server.wait_closed()
 
 
+async def start_http_server() -> None:
+    uvicorn_config = uvicorn.Config(
+        app,
+        host=config.http_host,
+        port=config.http_port,
+        log_level=config.log_level,
+    )
+    await uvicorn.Server(uvicorn_config).serve()
+
+
+async def start_servers() -> None:
+    print(r"""
+                                                 ___    ___           __      
+                                                /\_ \  /\_ \         /\ \__   
+     _____     ___ ___       __  __  __     __  \//\ \ \//\ \      __\ \ ,_\  
+    /\ '__`\ /' __` __`\    /\ \/\ \/\ \  /'__`\  \ \ \  \ \ \   /'__`\ \ \/  
+    \ \ \L\ \/\ \/\ \/\ \   \ \ \_/ \_/ \/\ \L\.\_ \_\ \_ \_\ \_/\  __/\ \ \_ 
+     \ \ ,__/\ \_\ \_\ \_\   \ \___x___/'\ \__/.\_\/\____\/\____\ \____\\ \__\
+      \ \ \/  \/_/\/_/\/_/    \/__//__/   \/__/\/_/\/____/\/____/\/____/ \/__/
+       \ \_\                                                                  
+        \/_/                                                                  
+    """)
+
+    await asyncio.gather(start_grpc_server(), start_http_server())
+
+
 if __name__ == "__main__":
-    asyncio.run(start_server())
+    asyncio.run(start_servers())
