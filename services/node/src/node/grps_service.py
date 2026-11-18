@@ -29,9 +29,9 @@ class NodeService(NodeServiceBase):
     async def submit_transaction(
         self, message: SubmitTransactionRequest
     ) -> SubmitTransactionResponse:
-        return SubmitTransactionResponse(tx_id="submitted")
+        return SubmitTransactionResponse(tx_id="tx_id_123")
 
     async def get_transaction_status(
         self, message: GetTransactionStatusRequest
     ) -> GetTransactionStatusResponse:
-        return GetTransactionStatusResponse(status=TransactionStatus.CONFIRMED)
+        return GetTransactionStatusResponse(status=TransactionStatus.CONFIRMED, confirmations=10)
