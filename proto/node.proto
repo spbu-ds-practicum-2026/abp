@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package pmwallet;
+
+service NodeService {
+  rpc GetBalance(GetBalanceRequest)
+      returns (GetBalanceResponse);
+
+  rpc PrepareTransaction(PrepareTransactionRequest)
+      returns (PrepareTransactionResponse);
+
+  rpc SubmitTransaction(SubmitTransactionRequest)
+      returns (SubmitTransactionResponse);
+
+  rpc GetTransactionStatus(GetTransactionStatusRequest)
+      returns (GetTransactionStatusResponse);
+}
+
+message GetBalanceRequest {
+  bytes address = 1;
+}
+
+message GetBalanceResponse {
+  uint64 balance = 1;
+  uint64 block_height = 2;
+}
+
+message PrepareTransactionRequest {
+  bytes sender_public_key = 1;
+  bytes recipient_address = 2;
+  uint64 amount = 3;
+}
+
+message PrepareTransactionResponse {
+  bytes unsigned_transaction = 1;
+  repeated bytes signing_hashes = 2;
+}
+
+message SubmitTransactionRequest {
+  bytes signed_transaction = 1;
+}
+
+message SubmitTransactionResponse {
+  bytes tx_id = 1;
+}
+
+message GetTransactionStatusRequest {
+  bytes tx_id = 1;
+}
+
+message GetTransactionStatusResponse {
+  TransactionStatus status = 1;
+  uint64 confirmations = 2;
+}
+
+enum TransactionStatus {
+  TRANSACTION_STATUS_UNSPECIFIED = 0;
+  TRANSACTION_STATUS_PENDING = 1;
+  TRANSACTION_STATUS_CONFIRMED = 2;
+  TRANSACTION_STATUS_FINALIZED = 3;
+  TRANSACTION_STATUS_REJECTED = 4;
+  TRANSACTION_STATUS_NOT_FOUND = 5;
+}
