@@ -132,14 +132,26 @@ class UTXOSet:
         message = tx.signing_bytes()
 
         for tx_input in tx.inputs:
+            # Индекс должен обозначать существующее место в списке выходов
+            if type(tx_input.output_index) is not int or tx_input.output_index < 0:
+                raise ValueError("Индекс выхода должен быть неотрицательным целым числом")
 
             key = (tx_input.previous_tx_id, tx_input.output_index)
             if key in seen_inputs:
                 raise ValueError("Один выход указан во входах несколько раз")
             seen_inputs.add(key)
-            previous_output = self.get(*key)
 
-        
+            # Отсутствующий выход неизвестен или уже был потрачен.
+            try:
+                previous_output = self.get(*key)
+            except KeyError as error:
+                raise ValueError("Вход ссылается на неизвестный или потраченный выход") from error
+
+            # Связываем публичный ключ из входа с владельцем найденного выхода.
+            expected_recipient = hashlib.sha256(tx_input.public_key).hexdigest()
+            if previous_output.recipient != expected_recipient:
+                raise ValueError("Публичный ключ не владеет указанным выходом")
+
             try:
                 is_valid = verify_signature(
                     tx_input.public_key,
@@ -173,35 +185,47 @@ class UTXOSet:
 
 
 if __name__ == "__main__":
+    # Создаём тестовый выход, принадлежащий публичному ключу входа.
     utxo_set = UTXOSet()
-
-    # Добавляем условный выход, чтобы проверить хранение UTXO.
     previous_tx_id = b"debug-transaction"
-    output = TxOutput(recipient="debug-recipient", amount=10)
+    public_key = b"debug-public-key"
+    alice_address = hashlib.sha256(public_key).hexdigest()
+    output = TxOutput(recipient=alice_address, amount=10)
     utxo_set.add(previous_tx_id, 0, output)
 
-    # Проверяем, что get возвращает добавленный выход.
     assert utxo_set.get(previous_tx_id, 0) == output
     print("Выход найден:", utxo_set.get(previous_tx_id, 0))
 
-    # Проверяем, что spend возвращает выход и удаляет его из набора.
-    spent_output = utxo_set.spend(previous_tx_id, 0)
-    assert spent_output == output
-    assert (previous_tx_id, 0) not in utxo_set.outputs
-    print("Выход потрачен; UTXO пуст:", not utxo_set.outputs)
-
-    # Проверяем, что транзакция стабильно сериализуется и получает 32-байтовый tx_id.
     transaction = Transaction(
         inputs=(
             TxInput(
                 previous_tx_id=previous_tx_id,
                 output_index=0,
-                public_key=b"debug-public-key",
+                public_key=public_key,
                 signature=b"debug-signature",
             ),
         ),
-        outputs=(TxOutput(recipient="debug-recipient", amount=10),),
+        outputs=(
+            TxOutput(recipient="debug-recipient", amount=7),
+            TxOutput(recipient=alice_address, amount=3),
+        ),
     )
+
+    def debug_verify_signature(key: bytes, message: bytes, signature: bytes) -> bool:
+        # Это заглушка для демонстрации apply, а не настоящая криптопроверка.
+        return (
+            key == public_key
+            and message == transaction.signing_bytes()
+            and signature == b"debug-signature"
+        )
+
     assert transaction.to_bytes() == transaction.to_bytes()
     assert len(transaction.tx_id) == 32
-    print("Сериализация и tx_id работают; размер tx_id:", len(transaction.tx_id))
+    utxo_set.apply(transaction, debug_verify_signature)
+
+    # Проверяем, что старый выход удалён, а оба новых доступны.
+    assert (previous_tx_id, 0) not in utxo_set.outputs
+    assert utxo_set.get(transaction.tx_id, 0).amount == 7
+    assert utxo_set.get(transaction.tx_id, 1).amount == 3
+    print("Перевод применён: старый выход потрачен, новые выходы созданы")
+    print("tx_id (32 байта):", transaction.tx_id.hex())
