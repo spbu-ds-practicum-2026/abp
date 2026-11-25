@@ -1,4 +1,6 @@
-import hashlib 
+from .block import Block
 
-class Miner():
-    
+
+class Miner:
+    def mine(self, block: Block) -> bool:
+        return True

@@ -24,6 +24,7 @@ class Transaction:
 
     outputs: tuple[TxOutput, ...]
 
+    #Данные которые подписывает клиент
     def signing_bytes(self) -> bytes:
         data = {
             "inputs": [
@@ -52,6 +53,7 @@ class Transaction:
         )
         return text.encode("utf-8")
 
+    #финальное представление tx 
     def to_bytes(self) -> bytes:
         data = {
             "inputs": [
