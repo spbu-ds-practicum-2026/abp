@@ -27,17 +27,33 @@ message GetBalanceResponse {
 
 message PrepareTransactionRequest {
   bytes sender_public_key = 1;
-  bytes recipient_address = 2;
+  string recipient_address = 2;
   uint64 amount = 3;
 }
 
 message PrepareTransactionResponse {
-  bytes unsigned_transaction = 1;
-  repeated bytes signing_hashes = 2;
+  Transaction unsigned_transaction = 1;
 }
 
 message SubmitTransactionRequest {
-  bytes signed_transaction = 1;
+  Transaction signed_transaction = 1;
+}
+
+message Transaction {
+  repeated TransactionInput inputs = 1;
+  repeated TransactionOutput outputs = 2;
+}
+
+message TransactionInput {
+  bytes previous_tx_id = 1;
+  uint32 output_index = 2;
+  bytes public_key = 3;
+  bytes signature = 4;
+}
+
+message TransactionOutput {
+  string recipient = 1;
+  uint64 amount = 2;
 }
 
 message SubmitTransactionResponse {

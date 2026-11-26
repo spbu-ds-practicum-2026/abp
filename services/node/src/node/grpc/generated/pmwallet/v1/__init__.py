@@ -14,6 +14,9 @@ __all__ = (
     "PrepareTransactionResponse",
     "SubmitTransactionRequest",
     "SubmitTransactionResponse",
+    "Transaction",
+    "TransactionInput",
+    "TransactionOutput",
     "TransactionStatus",
 )
 
@@ -116,7 +119,7 @@ default_message_pool.register_message(
 class PrepareTransactionRequest(betterproto2.Message):
     sender_public_key: "bytes" = betterproto2.field(1, betterproto2.TYPE_BYTES)
 
-    recipient_address: "bytes" = betterproto2.field(2, betterproto2.TYPE_BYTES)
+    recipient_address: "str" = betterproto2.field(2, betterproto2.TYPE_STRING)
 
     amount: "int" = betterproto2.field(3, betterproto2.TYPE_UINT64)
 
@@ -128,9 +131,9 @@ default_message_pool.register_message(
 
 @dataclass(eq=False, repr=False)
 class PrepareTransactionResponse(betterproto2.Message):
-    unsigned_transaction: "bytes" = betterproto2.field(1, betterproto2.TYPE_BYTES)
-
-    signing_hashes: "list[bytes]" = betterproto2.field(2, betterproto2.TYPE_BYTES, repeated=True)
+    unsigned_transaction: "Transaction | None" = betterproto2.field(
+        1, betterproto2.TYPE_MESSAGE, optional=True
+    )
 
 
 default_message_pool.register_message(
@@ -140,7 +143,9 @@ default_message_pool.register_message(
 
 @dataclass(eq=False, repr=False)
 class SubmitTransactionRequest(betterproto2.Message):
-    signed_transaction: "bytes" = betterproto2.field(1, betterproto2.TYPE_BYTES)
+    signed_transaction: "Transaction | None" = betterproto2.field(
+        1, betterproto2.TYPE_MESSAGE, optional=True
+    )
 
 
 default_message_pool.register_message(
@@ -156,6 +161,50 @@ class SubmitTransactionResponse(betterproto2.Message):
 default_message_pool.register_message(
     "pmwallet.v1", "SubmitTransactionResponse", SubmitTransactionResponse
 )
+
+
+@dataclass(eq=False, repr=False)
+class Transaction(betterproto2.Message):
+    inputs: "list[TransactionInput]" = betterproto2.field(
+        1, betterproto2.TYPE_MESSAGE, repeated=True
+    )
+    """
+    Signing payload is Core's canonical compact JSON of inputs and outputs, without signatures.
+    """
+
+    outputs: "list[TransactionOutput]" = betterproto2.field(
+        2, betterproto2.TYPE_MESSAGE, repeated=True
+    )
+
+
+default_message_pool.register_message("pmwallet.v1", "Transaction", Transaction)
+
+
+@dataclass(eq=False, repr=False)
+class TransactionInput(betterproto2.Message):
+    previous_tx_id: "bytes" = betterproto2.field(1, betterproto2.TYPE_BYTES)
+
+    output_index: "int" = betterproto2.field(2, betterproto2.TYPE_UINT32)
+
+    public_key: "bytes" = betterproto2.field(3, betterproto2.TYPE_BYTES)
+
+    signature: "bytes" = betterproto2.field(4, betterproto2.TYPE_BYTES)
+    """
+    Ed25519 over the canonical transaction signing bytes.
+    """
+
+
+default_message_pool.register_message("pmwallet.v1", "TransactionInput", TransactionInput)
+
+
+@dataclass(eq=False, repr=False)
+class TransactionOutput(betterproto2.Message):
+    recipient: "str" = betterproto2.field(1, betterproto2.TYPE_STRING)
+
+    amount: "int" = betterproto2.field(2, betterproto2.TYPE_UINT64)
+
+
+default_message_pool.register_message("pmwallet.v1", "TransactionOutput", TransactionOutput)
 
 
 class NodeServiceStub:

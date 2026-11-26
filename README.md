@@ -1,7 +1,5 @@
 # ABP
 
-Workspace с gRPC-сервисами проекта PMWallet.
-
 ## Структура
 
 - `proto/` — исходные `.proto`-файлы;
@@ -35,5 +33,7 @@ uv sync --all-packages
 
 ```bash
 buf lint
-buf generate
+buf generate # for python
 ```
+
+Rust-типы клиента генерируются при Cargo build
