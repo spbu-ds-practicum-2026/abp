@@ -1,5 +1,4 @@
 import logging
-import sys
 
 import structlog
 
@@ -7,28 +6,17 @@ from node.config import LogConfig
 
 
 def configure_logging(config: LogConfig) -> None:
-    level = logging.getLevelNamesMapping()[config.level.upper()]
     foreign_pre_chain = [
-        structlog.contextvars.merge_contextvars,
         structlog.stdlib.add_log_level,
         structlog.stdlib.add_logger_name,
         structlog.processors.TimeStamper(fmt=config.timestamp_format, utc=True),
     ]
-    formatter = structlog.stdlib.ProcessorFormatter(
-        processor=structlog.dev.ConsoleRenderer(
-            colors=config.colors,
-            pad_event_to=22,
-            pad_level=True,
-        ),
-        foreign_pre_chain=foreign_pre_chain,
-    )
-
+    shared_processors = foreign_pre_chain
     structlog.configure(
         processors=[
             structlog.stdlib.filter_by_level,
-            *foreign_pre_chain,
+            *shared_processors,
             structlog.processors.StackInfoRenderer(),
-            structlog.processors.format_exc_info,
             structlog.processors.UnicodeDecoder(),
             structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
         ],
@@ -37,16 +25,37 @@ def configure_logging(config: LogConfig) -> None:
         cache_logger_on_first_use=True,
     )
 
-    handler = logging.StreamHandler(sys.stderr)
-    handler.setFormatter(formatter)
-    logging.basicConfig(
-        level=level,
-        handlers=[handler],
-        force=True,
+    http_level = config.http_level.upper() if config.http_level else "NOTSET"
+    grpc_level = config.grpc_level.upper() if config.grpc_level else "NOTSET"
+    renderer = structlog.dev.ConsoleRenderer(
+        colors=config.colors,
+        pad_event_to=0,
+        pad_level=True,
+        exception_formatter=structlog.dev.plain_traceback,
     )
+    columns = renderer.columns
+    logger_columns = [column for column in columns if column.key in ("logger", "logger_name")]
+    columns = [column for column in columns if column.key not in ("logger", "logger_name")]
+    event_index = next(index for index, column in enumerate(columns) if column.key == "event")
+    renderer.columns = [*columns[:event_index], *logger_columns, *columns[event_index:]]
 
-    for name in ("uvicorn", "uvicorn.error", "uvicorn.access", "grpclib"):
-        logger = logging.getLogger(name)
-        logger.setLevel(level)
-        logger.handlers = [handler]
-        logger.propagate = False
+    formatter = structlog.stdlib.ProcessorFormatter(
+        processors=[
+            structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+            renderer,
+        ],
+        foreign_pre_chain=foreign_pre_chain,
+    )
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+    logging.basicConfig(level=config.level.upper(), handlers=[handler], force=True)
+
+    for name, level in (
+        ("node", "NOTSET"),
+        ("node.http", http_level),
+        ("fastapi", http_level),
+        ("uvicorn", http_level),
+        ("node.grpc", grpc_level),
+        ("grpclib", grpc_level),
+    ):
+        logging.getLogger(name).setLevel(level)

@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 
-app = FastAPI(title="PMWallet Node")
+from node.lifespan import node_lifespan
+
+app = FastAPI(title="PMWallet Node", lifespan=node_lifespan)
 
 
 @app.get("/health")

@@ -9,13 +9,21 @@ authors = [
 dependencies = [
     "betterproto2>=0.10.0",
     "colorama>=0.4.6",
+    "adaptix==3.0.0b12",
     "dature[toml]>=1.6.4",
+    "dishka>=1.7.2",
     "fastapi>=0.165.0",
     "grpcio>=1.85.3",
     "grpclib>=0.4.9",
+    "aiosqlite>=0.21.0",
+    "sqlalchemy[asyncio]>=2.0.0",
     "structlog>=26.1.0",
     "uvicorn[standard,standart]>=0.54.0",
+    "core",
 ]
+
+[tool.uv.sources]
+core = { workspace = true }
 
 [build-system]
 requires = ["uv_build>=0.13.9,<0.14.0"]

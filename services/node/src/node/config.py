@@ -4,12 +4,16 @@ from typing import Literal
 
 import dature
 
+type LogLevel = Literal["debug", "info", "warning", "error", "critical"]
+
 
 @dataclass
 class LogConfig:
-    level: Literal["debug", "info", "warning", "error", "critical"] = "info"
+    level: LogLevel = "info"
     colors: bool = sys.stderr.isatty()
     timestamp_format: str = "%H:%M:%S"
+    http_level: LogLevel | None = None
+    grpc_level: LogLevel | None = None
 
 
 @dataclass
