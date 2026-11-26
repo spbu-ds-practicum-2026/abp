@@ -208,3 +208,5 @@ __marimo__/
 
 profile
 .DS_Store
+
+*.db
