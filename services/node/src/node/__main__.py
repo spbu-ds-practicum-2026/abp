@@ -18,13 +18,18 @@ BANNER = r"""                                                 ___    ___        
       \ \ \/  \/_/\/_/\/_/    \/__//__/   \/__/\/_/\/____/\/____/\/____/ \/__/
        \ \_                                                                  
         \/_/                                                                  
+                              PM Wallet Node
 
 """
 
 
 def print_banner() -> None:
-    if sys.stdout.isatty():
-        print(colorama.Fore.WHITE + BANNER + colorama.Style.RESET_ALL, flush=True)
+    if sys.stdout.isatty() and config.log.colors:
+        print(
+            colorama.Style.BRIGHT + colorama.Fore.CYAN + BANNER + colorama.Style.RESET_ALL,
+            end="",
+            flush=True,
+        )
     else:
         print(BANNER, flush=True)
 
