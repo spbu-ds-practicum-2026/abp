@@ -14,7 +14,7 @@ class TxInput:
 
 @dataclass(frozen=True)
 class TxOutput:
-    recipient: str #hex(SHA-256(public_key)).
+    recipient: str  # Хеш SHA-256 публичного ключа в шестнадцатеричной записи.
     amount: int
 
 
@@ -24,7 +24,7 @@ class Transaction:
 
     outputs: tuple[TxOutput, ...]
 
-    #Данные которые подписывает клиент
+    # Данные, которые подписывает клиент.
     def signing_bytes(self) -> bytes:
         data = {
             "inputs": [
@@ -53,7 +53,7 @@ class Transaction:
         )
         return text.encode("utf-8")
 
-    #финальное представление tx 
+    # Полная запись транзакции с подписями.
     def to_bytes(self) -> bytes:
         data = {
             "inputs": [
